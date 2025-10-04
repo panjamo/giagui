@@ -57,6 +57,9 @@ impl eframe::App for GiaApp {
         if ctx.input(|i| i.key_pressed(egui::Key::Enter) && i.modifiers.ctrl) {
             self.send_prompt();
         }
+        if ctx.input(|i| i.key_pressed(egui::Key::R) && i.modifiers.ctrl) {
+            self.send_prompt_with_audio();
+        }
         if ctx.input(|i| i.key_pressed(egui::Key::L) && i.modifiers.ctrl) {
             self.clear_form();
         }
@@ -97,6 +100,9 @@ impl eframe::App for GiaApp {
                     if ui.button("Send (Ctrl+Enter)").clicked() {
                         self.send_prompt();
                     }
+                    if ui.button("Record (Ctrl+R)").clicked() {
+                        self.send_prompt_with_audio();
+                    }
                     if ui.button("Clear (Ctrl+L)").clicked() {
                         self.clear_form();
                     }
@@ -122,8 +128,19 @@ impl eframe::App for GiaApp {
 
 impl GiaApp {
     fn send_prompt(&mut self) {
+        self.execute_gia(false);
+    }
+
+    fn send_prompt_with_audio(&mut self) {
+        self.execute_gia(true);
+    }
+
+    fn execute_gia(&mut self, with_audio: bool) {
         let mut args = vec![];
 
+        if with_audio {
+            args.push("--record-audio");
+        }
         if self.use_clipboard {
             args.push("-c");
         }
