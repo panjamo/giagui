@@ -1,7 +1,6 @@
 use arboard::Clipboard;
 use eframe::egui;
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
 
 fn main() -> eframe::Result<()> {
@@ -52,7 +51,7 @@ impl Default for GiaApp {
     fn default() -> Self {
         let tasks = load_md_files("tasks");
         let roles = load_md_files("roles");
-        
+
         Self {
             prompt: String::new(),
             options: String::new(),
@@ -72,10 +71,10 @@ impl Default for GiaApp {
 
 fn load_md_files(subdir: &str) -> Vec<String> {
     let mut files = Vec::new();
-    
+
     if let Some(home_dir) = dirs::home_dir() {
         let path = home_dir.join(".gia").join(subdir);
-        
+
         if let Ok(entries) = fs::read_dir(path) {
             for entry in entries.flatten() {
                 if let Ok(file_type) = entry.file_type() {
@@ -91,7 +90,7 @@ fn load_md_files(subdir: &str) -> Vec<String> {
             }
         }
     }
-    
+
     files.sort();
     files
 }
@@ -148,53 +147,6 @@ impl eframe::App for GiaApp {
                                 "Browser output (--browser-output)",
                             );
                             ui.checkbox(&mut self.resume, "Resume last conversation (-R)");
-                            egui::ComboBox::from_id_salt("model_selector")
-                                .selected_text(&self.model)
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "gemini-2.5-pro".to_string(),
-                                        "Gemini 2.5 Pro",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "gemini-2.5-flash".to_string(),
-                                        "Gemini 2.5 Flash",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "gemini-2.5-flash-lite".to_string(),
-                                        "Gemini 2.5 Flash-Lite",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "gemini-2.0-flash".to_string(),
-                                        "Gemini 2.0 Flash",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "gemini-2.0-flash-lite".to_string(),
-                                        "Gemini 2.0 Flash-Lite",
-                                    );
-                                });
-                            
-                            egui::ComboBox::from_id_salt("task_selector")
-                                .selected_text(if self.task.is_empty() { "Select Task" } else { &self.task })
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(&mut self.task, String::new(), "None");
-                                    for task in &self.tasks {
-                                        ui.selectable_value(&mut self.task, task.clone(), task);
-                                    }
-                                });
-                            
-                            egui::ComboBox::from_id_salt("role_selector")
-                                .selected_text(if self.role.is_empty() { "Select Role" } else { &self.role })
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(&mut self.role, String::new(), "None");
-                                    for role in &self.roles {
-                                        ui.selectable_value(&mut self.role, role.clone(), role);
-                                    }
-                                });
                         });
                     });
 
@@ -226,8 +178,65 @@ impl eframe::App for GiaApp {
                         ui.add(
                             egui::TextEdit::multiline(&mut self.options)
                                 .desired_width(f32::INFINITY)
-                                .desired_rows(4),
+                                .desired_rows(3),
                         );
+                        ui.horizontal(|ui| {
+                            egui::ComboBox::from_id_salt("model_selector")
+                                .selected_text(&self.model)
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "gemini-2.5-pro".to_string(),
+                                        "Gemini 2.5 Pro",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "gemini-2.5-flash".to_string(),
+                                        "Gemini 2.5 Flash",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "gemini-2.5-flash-lite".to_string(),
+                                        "Gemini 2.5 Flash-Lite",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "gemini-2.0-flash".to_string(),
+                                        "Gemini 2.0 Flash",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "gemini-2.0-flash-lite".to_string(),
+                                        "Gemini 2.0 Flash-Lite",
+                                    );
+                                });
+
+                            egui::ComboBox::from_id_salt("task_selector")
+                                .selected_text(if self.task.is_empty() {
+                                    "Select Task"
+                                } else {
+                                    &self.task
+                                })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut self.task, String::new(), "None");
+                                    for task in &self.tasks {
+                                        ui.selectable_value(&mut self.task, task.clone(), task);
+                                    }
+                                });
+
+                            egui::ComboBox::from_id_salt("role_selector")
+                                .selected_text(if self.role.is_empty() {
+                                    "Select Role"
+                                } else {
+                                    &self.role
+                                })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut self.role, String::new(), "None");
+                                    for role in &self.roles {
+                                        ui.selectable_value(&mut self.role, role.clone(), role);
+                                    }
+                                });
+                        });
                     });
                 });
 
@@ -299,18 +308,6 @@ impl GiaApp {
         args.push("--model".to_string());
         args.push(self.model.clone());
 
-        // Add task option
-        if !self.task.is_empty() {
-            args.push("-t".to_string());
-            args.push(self.task.clone());
-        }
-
-        // Add role option
-        if !self.role.is_empty() {
-            args.push("--role".to_string());
-            args.push(self.role.clone());
-        }
-
         // Add custom options from options field
         for line in self.options.lines() {
             let trimmed = line.trim();
@@ -357,7 +354,7 @@ impl GiaApp {
 
     fn show_conversation(&mut self) {
         let _ = Command::new("gia")
-            .args(&["--browser-output", "--show-conversation"])
+            .args(["--browser-output", "--show-conversation"])
             .spawn();
     }
 
