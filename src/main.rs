@@ -86,7 +86,7 @@ impl eframe::App for GiaApp {
                 let prompt_response = ui.add(
                     egui::TextEdit::multiline(&mut self.prompt)
                         .desired_width(f32::INFINITY)
-                        .desired_rows(5),
+                        .desired_rows(1),
                 );
 
                 // Request focus on first frame
