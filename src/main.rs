@@ -110,6 +110,28 @@ impl eframe::App for GiaApp {
                         });
                     });
 
+                    // GIA logo
+                    let logo_bytes = include_bytes!("../icons/gia.png");
+                    if let Ok(image) = image::load_from_memory(logo_bytes) {
+                        let size = [80.0, 80.0];
+                        let image =
+                            image.resize_exact(80, 80, image::imageops::FilterType::Lanczos3);
+                        let rgba_image = image.to_rgba8();
+                        let pixels = rgba_image.as_flat_samples();
+                        let color_image = egui::ColorImage::from_rgba_unmultiplied(
+                            [size[0] as usize, size[1] as usize],
+                            pixels.as_slice(),
+                        );
+                        let texture = ui.ctx().load_texture(
+                            "gia_logo",
+                            color_image,
+                            egui::TextureOptions::LINEAR,
+                        );
+                        ui.add_space(10.0);
+                        ui.image(&texture);
+                        ui.add_space(10.0);
+                    }
+
                     // Custom options input
                     ui.vertical(|ui| {
                         ui.label("Options:");
