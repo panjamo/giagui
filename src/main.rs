@@ -70,6 +70,9 @@ impl eframe::App for GiaApp {
         if ctx.input(|i| i.key_pressed(egui::Key::C) && i.modifiers.ctrl && i.modifiers.shift) {
             self.copy_response();
         }
+        if ctx.input(|i| i.key_pressed(egui::Key::O) && i.modifiers.ctrl) {
+            self.show_conversation();
+        }
         if ctx.input(|i| i.key_pressed(egui::Key::F1)) {
             self.show_help();
         }
@@ -136,6 +139,9 @@ impl eframe::App for GiaApp {
                     }
                     if ui.button("Copy (Ctrl+Shift+C)").clicked() {
                         self.copy_response();
+                    }
+                    if ui.button("Conversation (Ctrl+O)").clicked() {
+                        self.show_conversation();
                     }
                     if ui.button("Help (F1)").clicked() {
                         self.show_help();
@@ -223,6 +229,25 @@ impl GiaApp {
     fn copy_response(&mut self) {
         if let Ok(mut clipboard) = Clipboard::new() {
             let _ = clipboard.set_text(&self.response);
+        }
+    }
+
+    fn show_conversation(&mut self) {
+        match Command::new("gia")
+            .args(&["--browser-output", "--show-conversation"])
+            .output()
+        {
+            Ok(output) => {
+                self.response = String::from_utf8_lossy(&output.stdout).to_string();
+                if !output.stderr.is_empty() {
+                    self.response.push_str("\n\nErrors:\n");
+                    self.response
+                        .push_str(&String::from_utf8_lossy(&output.stderr));
+                }
+            }
+            Err(e) => {
+                self.response = format!("Error executing gia: {}", e);
+            }
         }
     }
 
