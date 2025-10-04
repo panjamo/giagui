@@ -38,6 +38,7 @@ struct GiaApp {
     browser_output: bool,
     resume: bool,
     response: String,
+    first_frame: bool,
 }
 
 impl Default for GiaApp {
@@ -49,6 +50,7 @@ impl Default for GiaApp {
             browser_output: false,
             resume: false,
             response: String::new(),
+            first_frame: true,
         }
     }
 }
@@ -73,11 +75,17 @@ impl eframe::App for GiaApp {
             ui.vertical(|ui| {
                 // Prompt input
                 ui.label("Prompt:");
-                ui.add(
+                let prompt_response = ui.add(
                     egui::TextEdit::multiline(&mut self.prompt)
                         .desired_width(f32::INFINITY)
                         .desired_rows(5),
                 );
+
+                // Request focus on first frame
+                if self.first_frame {
+                    prompt_response.request_focus();
+                    self.first_frame = false;
+                }
 
                 ui.add_space(10.0);
 
