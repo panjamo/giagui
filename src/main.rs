@@ -171,11 +171,17 @@ impl eframe::App for GiaApp {
             ui.vertical(|ui| {
                 // Prompt input
                 ui.label("Prompt:");
-                let prompt_response = ui.add(
-                    egui::TextEdit::multiline(&mut self.prompt)
-                        .desired_width(f32::INFINITY)
-                        .desired_rows(2),
-                );
+                let prompt_lines = self.prompt.lines().count().max(1).min(10);
+                let prompt_response = egui::ScrollArea::vertical()
+                    .max_height(200.0)
+                    .show(ui, |ui| {
+                        ui.add(
+                            egui::TextEdit::multiline(&mut self.prompt)
+                                .desired_width(f32::INFINITY)
+                                .desired_rows(prompt_lines),
+                        )
+                    })
+                    .inner;
 
                 // Handle drag and drop
                 if !ctx.input(|i| i.raw.dropped_files.is_empty()) {
@@ -266,11 +272,16 @@ impl eframe::App for GiaApp {
                     // Custom options input
                     ui.vertical(|ui| {
                         ui.label("Options: (Drop files here)");
-                        ui.add(
-                            egui::TextEdit::multiline(&mut self.options)
-                                .desired_width(f32::INFINITY)
-                                .desired_rows(3),
-                        );
+                        let options_lines = self.options.lines().count().max(1).min(10);
+                        egui::ScrollArea::vertical()
+                            .max_height(200.0)
+                            .show(ui, |ui| {
+                                ui.add(
+                                    egui::TextEdit::multiline(&mut self.options)
+                                        .desired_width(f32::INFINITY)
+                                        .desired_rows(options_lines),
+                                )
+                            });
                         ui.horizontal(|ui| {
                             egui::ComboBox::from_id_salt("model_selector")
                                 .selected_text(&self.model)
