@@ -171,17 +171,12 @@ impl eframe::App for GiaApp {
             ui.vertical(|ui| {
                 // Prompt input
                 ui.label("Prompt:");
-                let prompt_lines = self.prompt.lines().count().max(1).min(10);
-                let prompt_response = egui::ScrollArea::vertical()
-                    .max_height(200.0)
-                    .show(ui, |ui| {
-                        ui.add(
-                            egui::TextEdit::multiline(&mut self.prompt)
-                                .desired_width(f32::INFINITY)
-                                .desired_rows(prompt_lines),
-                        )
-                    })
-                    .inner;
+                let prompt_lines = self.prompt.lines().count().max(2).min(10);
+                let prompt_response = ui.add(
+                    egui::TextEdit::multiline(&mut self.prompt)
+                        .desired_width(f32::INFINITY)
+                        .desired_rows(prompt_lines),
+                );
 
                 // Handle drag and drop
                 if !ctx.input(|i| i.raw.dropped_files.is_empty()) {
