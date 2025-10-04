@@ -53,6 +53,17 @@ impl Default for GiaApp {
 
 impl eframe::App for GiaApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Handle keyboard shortcuts
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter) && i.modifiers.ctrl) {
+            self.send_prompt();
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::L) && i.modifiers.ctrl) {
+            self.clear_form();
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::C) && i.modifiers.ctrl && i.modifiers.shift) {
+            self.copy_response();
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical(|ui| {
                 // Prompt input
@@ -94,13 +105,13 @@ impl eframe::App for GiaApp {
 
                 // Buttons
                 ui.horizontal(|ui| {
-                    if ui.button("Send").clicked() {
+                    if ui.button("Send (Ctrl+Enter)").clicked() {
                         self.send_prompt();
                     }
-                    if ui.button("Clear").clicked() {
+                    if ui.button("Clear (Ctrl+L)").clicked() {
                         self.clear_form();
                     }
-                    if ui.button("Copy").clicked() {
+                    if ui.button("Copy (Ctrl+Shift+C)").clicked() {
                         self.copy_response();
                     }
                 });
