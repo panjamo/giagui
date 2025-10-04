@@ -1,6 +1,7 @@
 use arboard::Clipboard;
 use eframe::egui;
 use std::fs;
+use std::path::Path;
 use std::process::Command;
 
 fn main() -> eframe::Result<()> {
@@ -95,6 +96,19 @@ fn load_md_files(subdir: &str) -> Vec<String> {
     files
 }
 
+fn is_media_file(path: &Path) -> bool {
+    const MEDIA_EXTENSIONS: &[&str] = &[
+        "jpg", "jpeg", "png", "webp", "heic", "pdf", "ogg", "opus", "mp3", "m4a", "mp4",
+    ];
+
+    if let Some(ext) = path.extension() {
+        if let Some(ext_str) = ext.to_str() {
+            return MEDIA_EXTENSIONS.contains(&ext_str.to_lowercase().as_str());
+        }
+    }
+    false
+}
+
 impl eframe::App for GiaApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Handle keyboard shortcuts
@@ -126,6 +140,27 @@ impl eframe::App for GiaApp {
                         .desired_width(f32::INFINITY)
                         .desired_rows(1),
                 );
+
+                // Handle drag and drop
+                if !ctx.input(|i| i.raw.dropped_files.is_empty()) {
+                    let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
+                    for file in dropped_files {
+                        if let Some(path) = file.path {
+                            if let Some(path_str) = path.to_str() {
+                                let option_line = if is_media_file(&path) {
+                                    format!("-i{}", path_str)
+                                } else {
+                                    format!("-f{}", path_str)
+                                };
+
+                                if !self.options.is_empty() && !self.options.ends_with('\n') {
+                                    self.options.push('\n');
+                                }
+                                self.options.push_str(&option_line);
+                            }
+                        }
+                    }
+                }
 
                 // Request focus on first frame
                 if self.first_frame {
@@ -174,7 +209,7 @@ impl eframe::App for GiaApp {
 
                     // Custom options input
                     ui.vertical(|ui| {
-                        ui.label("Options:");
+                        ui.label("Options: (Drop files here)");
                         ui.add(
                             egui::TextEdit::multiline(&mut self.options)
                                 .desired_width(f32::INFINITY)
