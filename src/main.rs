@@ -145,9 +145,6 @@ impl eframe::App for GiaApp {
 
                 ui.add_space(10.0);
 
-                // Response output
-                ui.label("Response:");
-
                 // Buttons
                 ui.horizontal(|ui| {
                     if ui.button("Send (Ctrl+Enter)").clicked() {
@@ -169,6 +166,11 @@ impl eframe::App for GiaApp {
                         self.show_help();
                     }
                 });
+
+                ui.add_space(5.0);
+
+                // Response output
+                ui.label("Response:");
 
                 ui.add_space(5.0);
 
@@ -255,22 +257,9 @@ impl GiaApp {
     }
 
     fn show_conversation(&mut self) {
-        match Command::new("gia")
+        let _ = Command::new("gia")
             .args(&["--browser-output", "--show-conversation"])
-            .output()
-        {
-            Ok(output) => {
-                self.response = String::from_utf8_lossy(&output.stdout).to_string();
-                if !output.stderr.is_empty() {
-                    self.response.push_str("\n\nErrors:\n");
-                    self.response
-                        .push_str(&String::from_utf8_lossy(&output.stderr));
-                }
-            }
-            Err(e) => {
-                self.response = format!("Error executing gia: {}", e);
-            }
-        }
+            .spawn();
     }
 
     fn show_help(&mut self) {
