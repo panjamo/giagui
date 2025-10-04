@@ -138,7 +138,7 @@ impl eframe::App for GiaApp {
                 let prompt_response = ui.add(
                     egui::TextEdit::multiline(&mut self.prompt)
                         .desired_width(f32::INFINITY)
-                        .desired_rows(1),
+                        .desired_rows(2),
                 );
 
                 // Handle drag and drop
