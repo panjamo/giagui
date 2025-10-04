@@ -3,6 +3,8 @@ use eframe::egui;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
@@ -46,6 +48,9 @@ struct GiaApp {
     role: String,
     tasks: Vec<String>,
     roles: Vec<String>,
+    is_executing: Arc<Mutex<bool>>,
+    animation_time: f64,
+    pending_response: Arc<Mutex<Option<String>>>,
 }
 
 impl Default for GiaApp {
@@ -66,6 +71,9 @@ impl Default for GiaApp {
             role: String::new(),
             tasks,
             roles,
+            is_executing: Arc::new(Mutex::new(false)),
+            animation_time: 0.0,
+            pending_response: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -111,6 +119,21 @@ fn is_media_file(path: &Path) -> bool {
 
 impl eframe::App for GiaApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Check for pending response
+        if let Ok(mut pending) = self.pending_response.lock() {
+            if let Some(response) = pending.take() {
+                self.response = response;
+                self.resume = true;
+            }
+        }
+
+        // Request repaint for animation
+        let is_exec = *self.is_executing.lock().unwrap();
+        if is_exec {
+            self.animation_time += ctx.input(|i| i.stable_dt as f64);
+            ctx.request_repaint();
+        }
+
         // Handle keyboard shortcuts
         if ctx.input(|i| i.key_pressed(egui::Key::Enter) && i.modifiers.ctrl) {
             self.send_prompt();
@@ -301,6 +324,41 @@ impl eframe::App for GiaApp {
 
                 ui.add_space(5.0);
 
+                // Animation during execution
+                let is_exec = *self.is_executing.lock().unwrap();
+                if is_exec {
+                    ui.horizontal(|ui| {
+                        ui.label("Executing GIA");
+                        
+                        // Animated spinner with rotating dots
+                        let num_dots = 8;
+                        let radius = 8.0;
+                        let dot_radius = 2.5;
+                        let center = ui.cursor().min + egui::vec2(30.0, 10.0);
+                        
+                        for i in 0..num_dots {
+                            let angle = (self.animation_time * 2.0) as f32 + (i as f32 * std::f32::consts::TAU / num_dots as f32);
+                            let x = center.x + angle.cos() * radius;
+                            let y = center.y + angle.sin() * radius;
+                            
+                            let opacity = ((self.animation_time * 3.0 + i as f64 * 0.5).sin() * 0.5 + 0.5) as f32;
+                            let color = egui::Color32::from_rgba_unmultiplied(
+                                100,
+                                150,
+                                255,
+                                (opacity * 255.0) as u8
+                            );
+                            
+                            ui.painter().circle_filled(
+                                egui::pos2(x, y),
+                                dot_radius,
+                                color
+                            );
+                        }
+                    });
+                    ui.add_space(5.0);
+                }
+
                 // Response box - use remaining space
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
@@ -355,21 +413,29 @@ impl GiaApp {
             args.push(self.prompt.clone());
         }
 
-        match Command::new("gia").args(args).output() {
-            Ok(output) => {
-                self.response = String::from_utf8_lossy(&output.stdout).to_string();
-                if !output.stderr.is_empty() {
-                    self.response.push_str("\n\nErrors:\n");
-                    self.response
-                        .push_str(&String::from_utf8_lossy(&output.stderr));
+        // Start animation
+        *self.is_executing.lock().unwrap() = true;
+        self.animation_time = 0.0;
+
+        let is_executing = Arc::clone(&self.is_executing);
+        let pending_response = Arc::clone(&self.pending_response);
+
+        thread::spawn(move || {
+            let result = match Command::new("gia").args(args).output() {
+                Ok(output) => {
+                    let mut response = String::from_utf8_lossy(&output.stdout).to_string();
+                    if !output.stderr.is_empty() {
+                        response.push_str("\n\nErrors:\n");
+                        response.push_str(&String::from_utf8_lossy(&output.stderr));
+                    }
+                    response
                 }
-                // Auto-enable Resume after successful execution
-                self.resume = true;
-            }
-            Err(e) => {
-                self.response = format!("Error executing gia: {}", e);
-            }
-        }
+                Err(e) => format!("Error executing gia: {}", e),
+            };
+
+            *pending_response.lock().unwrap() = Some(result);
+            *is_executing.lock().unwrap() = false;
+        });
     }
 
     fn clear_form(&mut self) {
