@@ -8,3 +8,7 @@ eframe = "0.31"
 egui = "0.31"
 arboard = "3.4"
 image = "0.25"
+single-instance = "0.3"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
