@@ -39,6 +39,7 @@ struct GiaApp {
     resume: bool,
     response: String,
     first_frame: bool,
+    model: String,
 }
 
 impl Default for GiaApp {
@@ -51,6 +52,7 @@ impl Default for GiaApp {
             resume: false,
             response: String::new(),
             first_frame: true,
+            model: "Gemini 2.5 Flash-Lite".to_string(),
         }
     }
 }
@@ -107,6 +109,50 @@ impl eframe::App for GiaApp {
                                 "Browser output (--browser-output)",
                             );
                             ui.checkbox(&mut self.resume, "Resume last conversation (-R)");
+                            egui::ComboBox::from_id_salt("model_selector")
+                                .selected_text(&self.model)
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Pro".to_string(),
+                                        "Gemini 2.5 Pro",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Flash".to_string(),
+                                        "Gemini 2.5 Flash",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Flash Preview".to_string(),
+                                        "Gemini 2.5 Flash Preview",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Flash Image".to_string(),
+                                        "Gemini 2.5 Flash Image",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Flash Live".to_string(),
+                                        "Gemini 2.5 Flash Live",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.5 Flash-Lite".to_string(),
+                                        "Gemini 2.5 Flash-Lite",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.0 Flash".to_string(),
+                                        "Gemini 2.0 Flash",
+                                    );
+                                    ui.selectable_value(
+                                        &mut self.model,
+                                        "Gemini 2.0 Flash-Lite".to_string(),
+                                        "Gemini 2.0 Flash-Lite",
+                                    );
+                                });
                         });
                     });
 
@@ -169,11 +215,6 @@ impl eframe::App for GiaApp {
 
                 ui.add_space(5.0);
 
-                // Response output
-                ui.label("Response:");
-
-                ui.add_space(5.0);
-
                 // Response box - use remaining space
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
@@ -211,6 +252,10 @@ impl GiaApp {
         if self.resume {
             args.push("-R".to_string());
         }
+
+        // Add model option
+        args.push("--model".to_string());
+        args.push(self.model.clone());
 
         // Add custom options from options field
         for line in self.options.lines() {
