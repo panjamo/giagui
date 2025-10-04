@@ -202,6 +202,8 @@ impl GiaApp {
                     self.response
                         .push_str(&String::from_utf8_lossy(&output.stderr));
                 }
+                // Auto-enable Resume after successful execution
+                self.resume = true;
             }
             Err(e) => {
                 self.response = format!("Error executing gia: {}", e);
