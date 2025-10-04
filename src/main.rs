@@ -52,7 +52,7 @@ impl Default for GiaApp {
             resume: false,
             response: String::new(),
             first_frame: true,
-            model: "Gemini 2.5 Flash-Lite".to_string(),
+            model: "gemini-2.5-flash-lite".to_string(),
         }
     }
 }
@@ -114,42 +114,27 @@ impl eframe::App for GiaApp {
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(
                                         &mut self.model,
-                                        "Gemini 2.5 Pro".to_string(),
+                                        "gemini-2.5-pro".to_string(),
                                         "Gemini 2.5 Pro",
                                     );
                                     ui.selectable_value(
                                         &mut self.model,
-                                        "Gemini 2.5 Flash".to_string(),
+                                        "gemini-2.5-flash".to_string(),
                                         "Gemini 2.5 Flash",
                                     );
                                     ui.selectable_value(
                                         &mut self.model,
-                                        "Gemini 2.5 Flash Preview".to_string(),
-                                        "Gemini 2.5 Flash Preview",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "Gemini 2.5 Flash Image".to_string(),
-                                        "Gemini 2.5 Flash Image",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "Gemini 2.5 Flash Live".to_string(),
-                                        "Gemini 2.5 Flash Live",
-                                    );
-                                    ui.selectable_value(
-                                        &mut self.model,
-                                        "Gemini 2.5 Flash-Lite".to_string(),
+                                        "gemini-2.5-flash-lite".to_string(),
                                         "Gemini 2.5 Flash-Lite",
                                     );
                                     ui.selectable_value(
                                         &mut self.model,
-                                        "Gemini 2.0 Flash".to_string(),
+                                        "gemini-2.0-flash".to_string(),
                                         "Gemini 2.0 Flash",
                                     );
                                     ui.selectable_value(
                                         &mut self.model,
-                                        "Gemini 2.0 Flash-Lite".to_string(),
+                                        "gemini-2.0-flash-lite".to_string(),
                                         "Gemini 2.0 Flash-Lite",
                                     );
                                 });
