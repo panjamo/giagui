@@ -81,25 +81,30 @@ impl eframe::App for GiaApp {
 
                 ui.add_space(10.0);
 
-                // Options input
-                ui.label("Options:");
-                ui.add(
-                    egui::TextEdit::multiline(&mut self.options)
-                        .desired_width(f32::INFINITY)
-                        .desired_rows(3),
-                );
+                // Options group and custom options side by side
+                ui.horizontal(|ui| {
+                    // Checkboxes
+                    ui.group(|ui| {
+                        ui.vertical(|ui| {
+                            ui.label("Options");
+                            ui.checkbox(&mut self.use_clipboard, "Use clipboard input (-c)");
+                            ui.checkbox(
+                                &mut self.browser_output,
+                                "Browser output (--browser-output)",
+                            );
+                            ui.checkbox(&mut self.resume, "Resume last conversation (-R)");
+                        });
+                    });
 
-                ui.add_space(10.0);
-
-                // Options group
-                ui.group(|ui| {
-                    ui.label("Options");
-                    ui.checkbox(&mut self.use_clipboard, "Use clipboard input (-c)");
-                    ui.checkbox(
-                        &mut self.browser_output,
-                        "Browser output (--browser-output)",
-                    );
-                    ui.checkbox(&mut self.resume, "Resume last conversation (-R)");
+                    // Custom options input
+                    ui.vertical(|ui| {
+                        ui.label("Options:");
+                        ui.add(
+                            egui::TextEdit::multiline(&mut self.options)
+                                .desired_width(f32::INFINITY)
+                                .desired_rows(4),
+                        );
+                    });
                 });
 
                 ui.add_space(10.0);
@@ -120,6 +125,9 @@ impl eframe::App for GiaApp {
                     }
                     if ui.button("Copy (Ctrl+Shift+C)").clicked() {
                         self.copy_response();
+                    }
+                    if ui.button("Help").clicked() {
+                        self.show_help();
                     }
                 });
 
@@ -202,6 +210,22 @@ impl GiaApp {
     fn copy_response(&mut self) {
         if let Ok(mut clipboard) = Clipboard::new() {
             let _ = clipboard.set_text(&self.response);
+        }
+    }
+
+    fn show_help(&mut self) {
+        match Command::new("gia").arg("--help").output() {
+            Ok(output) => {
+                self.response = String::from_utf8_lossy(&output.stdout).to_string();
+                if !output.stderr.is_empty() {
+                    self.response.push_str("\n\nErrors:\n");
+                    self.response
+                        .push_str(&String::from_utf8_lossy(&output.stderr));
+                }
+            }
+            Err(e) => {
+                self.response = format!("Error executing gia: {}", e);
+            }
         }
     }
 }
