@@ -33,6 +33,7 @@ fn load_icon() -> egui::IconData {
 
 struct GiaApp {
     prompt: String,
+    options: String,
     use_clipboard: bool,
     browser_output: bool,
     resume: bool,
@@ -43,6 +44,7 @@ impl Default for GiaApp {
     fn default() -> Self {
         Self {
             prompt: String::new(),
+            options: String::new(),
             use_clipboard: false,
             browser_output: false,
             resume: false,
@@ -75,6 +77,16 @@ impl eframe::App for GiaApp {
                     egui::TextEdit::multiline(&mut self.prompt)
                         .desired_width(f32::INFINITY)
                         .desired_rows(5),
+                );
+
+                ui.add_space(10.0);
+
+                // Options input
+                ui.label("Options:");
+                ui.add(
+                    egui::TextEdit::multiline(&mut self.options)
+                        .desired_width(f32::INFINITY)
+                        .desired_rows(3),
                 );
 
                 ui.add_space(10.0);
@@ -139,23 +151,31 @@ impl GiaApp {
         let mut args = vec![];
 
         if with_audio {
-            args.push("--record-audio");
+            args.push("--record-audio".to_string());
         }
         if self.use_clipboard {
-            args.push("-c");
+            args.push("-c".to_string());
         }
         if self.browser_output {
-            args.push("--browser-output");
+            args.push("--browser-output".to_string());
         }
         if self.resume {
-            args.push("-R");
+            args.push("-R".to_string());
+        }
+
+        // Add custom options from options field
+        for line in self.options.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                args.push(trimmed.to_string());
+            }
         }
 
         if !self.prompt.is_empty() {
-            args.push(&self.prompt);
+            args.push(self.prompt.clone());
         }
 
-        match Command::new("gia").args(&args).output() {
+        match Command::new("gia").args(args).output() {
             Ok(output) => {
                 self.response = String::from_utf8_lossy(&output.stdout).to_string();
                 if !output.stderr.is_empty() {
@@ -172,6 +192,7 @@ impl GiaApp {
 
     fn clear_form(&mut self) {
         self.prompt.clear();
+        self.options.clear();
         self.response.clear();
         self.use_clipboard = false;
         self.browser_output = false;
