@@ -1,5 +1,7 @@
 use arboard::Clipboard;
 use eframe::egui;
+use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 fn main() -> eframe::Result<()> {
@@ -40,10 +42,17 @@ struct GiaApp {
     response: String,
     first_frame: bool,
     model: String,
+    task: String,
+    role: String,
+    tasks: Vec<String>,
+    roles: Vec<String>,
 }
 
 impl Default for GiaApp {
     fn default() -> Self {
+        let tasks = load_md_files("tasks");
+        let roles = load_md_files("roles");
+        
         Self {
             prompt: String::new(),
             options: String::new(),
@@ -53,8 +62,38 @@ impl Default for GiaApp {
             response: String::new(),
             first_frame: true,
             model: "gemini-2.5-flash-lite".to_string(),
+            task: String::new(),
+            role: String::new(),
+            tasks,
+            roles,
         }
     }
+}
+
+fn load_md_files(subdir: &str) -> Vec<String> {
+    let mut files = Vec::new();
+    
+    if let Some(home_dir) = dirs::home_dir() {
+        let path = home_dir.join(".gia").join(subdir);
+        
+        if let Ok(entries) = fs::read_dir(path) {
+            for entry in entries.flatten() {
+                if let Ok(file_type) = entry.file_type() {
+                    if file_type.is_file() {
+                        if let Some(file_name) = entry.file_name().to_str() {
+                            if file_name.ends_with(".md") {
+                                let name = file_name.trim_end_matches(".md").to_string();
+                                files.push(name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    files.sort();
+    files
 }
 
 impl eframe::App for GiaApp {
@@ -137,6 +176,24 @@ impl eframe::App for GiaApp {
                                         "gemini-2.0-flash-lite".to_string(),
                                         "Gemini 2.0 Flash-Lite",
                                     );
+                                });
+                            
+                            egui::ComboBox::from_id_salt("task_selector")
+                                .selected_text(if self.task.is_empty() { "Select Task" } else { &self.task })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut self.task, String::new(), "None");
+                                    for task in &self.tasks {
+                                        ui.selectable_value(&mut self.task, task.clone(), task);
+                                    }
+                                });
+                            
+                            egui::ComboBox::from_id_salt("role_selector")
+                                .selected_text(if self.role.is_empty() { "Select Role" } else { &self.role })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut self.role, String::new(), "None");
+                                    for role in &self.roles {
+                                        ui.selectable_value(&mut self.role, role.clone(), role);
+                                    }
                                 });
                         });
                     });
@@ -241,6 +298,18 @@ impl GiaApp {
         // Add model option
         args.push("--model".to_string());
         args.push(self.model.clone());
+
+        // Add task option
+        if !self.task.is_empty() {
+            args.push("-t".to_string());
+            args.push(self.task.clone());
+        }
+
+        // Add role option
+        if !self.role.is_empty() {
+            args.push("--role".to_string());
+            args.push(self.role.clone());
+        }
 
         // Add custom options from options field
         for line in self.options.lines() {
