@@ -329,31 +329,30 @@ impl eframe::App for GiaApp {
                 if is_exec {
                     ui.horizontal(|ui| {
                         ui.label("Executing GIA");
-                        
+
                         // Animated spinner with rotating dots
                         let num_dots = 8;
                         let radius = 8.0;
                         let dot_radius = 2.5;
                         let center = ui.cursor().min + egui::vec2(30.0, 10.0);
-                        
+
                         for i in 0..num_dots {
-                            let angle = (self.animation_time * 2.0) as f32 + (i as f32 * std::f32::consts::TAU / num_dots as f32);
+                            let angle = (self.animation_time * 2.0) as f32
+                                + (i as f32 * std::f32::consts::TAU / num_dots as f32);
                             let x = center.x + angle.cos() * radius;
                             let y = center.y + angle.sin() * radius;
-                            
-                            let opacity = ((self.animation_time * 3.0 + i as f64 * 0.5).sin() * 0.5 + 0.5) as f32;
+
+                            let opacity = ((self.animation_time * 3.0 + i as f64 * 0.5).sin() * 0.5
+                                + 0.5) as f32;
                             let color = egui::Color32::from_rgba_unmultiplied(
                                 100,
                                 150,
                                 255,
-                                (opacity * 255.0) as u8
+                                (opacity * 255.0) as u8,
                             );
-                            
-                            ui.painter().circle_filled(
-                                egui::pos2(x, y),
-                                dot_radius,
-                                color
-                            );
+
+                            ui.painter()
+                                .circle_filled(egui::pos2(x, y), dot_radius, color);
                         }
                     });
                     ui.add_space(5.0);
