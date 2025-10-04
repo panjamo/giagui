@@ -91,17 +91,6 @@ impl eframe::App for GiaApp {
 
                 // Response output
                 ui.label("Response:");
-                egui::ScrollArea::vertical()
-                    .max_height(250.0)
-                    .show(ui, |ui| {
-                        ui.add(
-                            egui::TextEdit::multiline(&mut self.response)
-                                .desired_width(f32::INFINITY)
-                                .font(egui::TextStyle::Monospace),
-                        );
-                    });
-
-                ui.add_space(10.0);
 
                 // Buttons
                 ui.horizontal(|ui| {
@@ -114,6 +103,17 @@ impl eframe::App for GiaApp {
                     if ui.button("Copy (Ctrl+Shift+C)").clicked() {
                         self.copy_response();
                     }
+                });
+
+                ui.add_space(5.0);
+
+                // Response box - use remaining space
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.add_sized(
+                        ui.available_size(),
+                        egui::TextEdit::multiline(&mut self.response)
+                            .font(egui::TextStyle::Monospace),
+                    );
                 });
             });
         });
