@@ -5,7 +5,7 @@ use std::process::Command;
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([700.0, 600.0])
+            .with_inner_size([800.0, 600.0])
             .with_icon(load_icon()),
         ..Default::default()
     };
@@ -69,6 +69,9 @@ impl eframe::App for GiaApp {
         }
         if ctx.input(|i| i.key_pressed(egui::Key::C) && i.modifiers.ctrl && i.modifiers.shift) {
             self.copy_response();
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::F1)) {
+            self.show_help();
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -134,7 +137,7 @@ impl eframe::App for GiaApp {
                     if ui.button("Copy (Ctrl+Shift+C)").clicked() {
                         self.copy_response();
                     }
-                    if ui.button("Help").clicked() {
+                    if ui.button("Help (F1)").clicked() {
                         self.show_help();
                     }
                 });
