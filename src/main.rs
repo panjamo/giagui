@@ -1,24 +1,8 @@
 use arboard::Clipboard;
 use eframe::egui;
-use single_instance::SingleInstance;
 use std::process::Command;
 
-#[cfg(windows)]
-use windows::Win32::Foundation::HWND;
-#[cfg(windows)]
-use windows::Win32::UI::WindowsAndMessaging::{
-    FindWindowW, SW_RESTORE, SetForegroundWindow, ShowWindow,
-};
-
 fn main() -> eframe::Result<()> {
-    // Check for single instance
-    let instance = SingleInstance::new("giagui-single-instance").unwrap();
-    if !instance.is_single() {
-        // Another instance is running, try to focus it
-        focus_existing_window();
-        return Ok(());
-    }
-
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
@@ -31,23 +15,6 @@ fn main() -> eframe::Result<()> {
         options,
         Box::new(|_cc| Ok(Box::new(GiaApp::default()))),
     )
-}
-
-#[cfg(windows)]
-fn focus_existing_window() {
-    unsafe {
-        let window_title: Vec<u16> = "GIA GUI\0".encode_utf16().collect();
-        let hwnd = FindWindowW(None, windows::core::PCWSTR(window_title.as_ptr()));
-        if hwnd != HWND(0) {
-            ShowWindow(hwnd, SW_RESTORE);
-            SetForegroundWindow(hwnd);
-        }
-    }
-}
-
-#[cfg(not(windows))]
-fn focus_existing_window() {
-    // Non-Windows platforms: just exit
 }
 
 fn load_icon() -> egui::IconData {
