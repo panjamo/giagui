@@ -184,25 +184,22 @@ impl eframe::App for GiaApp {
                         if let Some(path) = file.path {
                             if path.is_dir() {
                                 // Recursively add all files from directory
-                                if let Ok(entries) = fs::read_dir(&path) {
-                                    let mut files_to_add = Vec::new();
-                                    collect_files_recursive(&path, &mut files_to_add);
+                                let mut files_to_add = Vec::new();
+                                collect_files_recursive(&path, &mut files_to_add);
 
-                                    for file_path in files_to_add {
-                                        if let Some(path_str) = file_path.to_str() {
-                                            let option_line = if is_media_file(&file_path) {
-                                                format!("-i{}", path_str)
-                                            } else {
-                                                format!("-f{}", path_str)
-                                            };
+                                for file_path in files_to_add {
+                                    if let Some(path_str) = file_path.to_str() {
+                                        let option_line = if is_media_file(&file_path) {
+                                            format!("-i{}", path_str)
+                                        } else {
+                                            format!("-f{}", path_str)
+                                        };
 
-                                            if !self.options.is_empty()
-                                                && !self.options.ends_with('\n')
-                                            {
-                                                self.options.push('\n');
-                                            }
-                                            self.options.push_str(&option_line);
+                                        if !self.options.is_empty() && !self.options.ends_with('\n')
+                                        {
+                                            self.options.push('\n');
                                         }
+                                        self.options.push_str(&option_line);
                                     }
                                 }
                             } else if let Some(path_str) = path.to_str() {
