@@ -117,6 +117,19 @@ fn is_media_file(path: &Path) -> bool {
     false
 }
 
+fn collect_files_recursive(dir: &Path, files: &mut Vec<std::path::PathBuf>) {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                collect_files_recursive(&path, files);
+            } else if path.is_file() {
+                files.push(path);
+            }
+        }
+    }
+}
+
 impl eframe::App for GiaApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Check for pending response
@@ -169,7 +182,30 @@ impl eframe::App for GiaApp {
                     let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
                     for file in dropped_files {
                         if let Some(path) = file.path {
-                            if let Some(path_str) = path.to_str() {
+                            if path.is_dir() {
+                                // Recursively add all files from directory
+                                if let Ok(entries) = fs::read_dir(&path) {
+                                    let mut files_to_add = Vec::new();
+                                    collect_files_recursive(&path, &mut files_to_add);
+
+                                    for file_path in files_to_add {
+                                        if let Some(path_str) = file_path.to_str() {
+                                            let option_line = if is_media_file(&file_path) {
+                                                format!("-i{}", path_str)
+                                            } else {
+                                                format!("-f{}", path_str)
+                                            };
+
+                                            if !self.options.is_empty()
+                                                && !self.options.ends_with('\n')
+                                            {
+                                                self.options.push('\n');
+                                            }
+                                            self.options.push_str(&option_line);
+                                        }
+                                    }
+                                }
+                            } else if let Some(path_str) = path.to_str() {
                                 let option_line = if is_media_file(&path) {
                                     format!("-i{}", path_str)
                                 } else {
