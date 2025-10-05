@@ -445,6 +445,18 @@ impl GiaApp {
         args.push("--model".to_string());
         args.push(self.model.clone());
 
+        // Add task option if selected
+        if !self.task.is_empty() {
+            args.push("-t".to_string());
+            args.push(self.task.clone());
+        }
+
+        // Add role option if selected
+        if !self.role.is_empty() {
+            args.push("--role".to_string());
+            args.push(self.role.clone());
+        }
+
         // Add custom options from options field
         for line in self.options.lines() {
             let trimmed = line.trim();
