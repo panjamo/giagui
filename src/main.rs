@@ -469,6 +469,10 @@ impl GiaApp {
             args.push(self.prompt.clone());
         }
 
+        // Clear task and role selections after sending
+        self.task.clear();
+        self.role.clear();
+
         // Start animation
         *self.is_executing.lock().unwrap() = true;
         self.animation_time = 0.0;
