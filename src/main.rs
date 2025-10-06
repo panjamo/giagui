@@ -136,7 +136,6 @@ impl eframe::App for GiaApp {
         if let Ok(mut pending) = self.pending_response.lock() {
             if let Some(response) = pending.take() {
                 self.response = response;
-                self.resume = true;
             }
         }
 
@@ -469,9 +468,11 @@ impl GiaApp {
             args.push(self.prompt.clone());
         }
 
-        // Clear task and role selections after sending
+        // Clear task and role selections, uncheck clipboard, and enable resume after sending
         self.task.clear();
         self.role.clear();
+        self.use_clipboard = false;
+        self.resume = true;
 
         // Start animation
         *self.is_executing.lock().unwrap() = true;
