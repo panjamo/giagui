@@ -346,9 +346,6 @@ impl eframe::App for GiaApp {
                                             "en-US".to_string(),
                                             "en-US",
                                         );
-                                        ui.separator();
-                                        ui.label("Custom:");
-                                        ui.text_edit_singleline(&mut self.tts_language);
                                     });
                             });
 
