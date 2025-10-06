@@ -169,6 +169,19 @@ impl eframe::App for GiaApp {
         if ctx.input(|i| i.key_pressed(egui::Key::F1)) {
             self.show_help();
         }
+        // Checkbox shortcuts
+        if ctx.input(|i| i.key_pressed(egui::Key::Num1) && i.modifiers.ctrl) {
+            self.use_clipboard = !self.use_clipboard;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Num2) && i.modifiers.ctrl) {
+            self.browser_output = !self.browser_output;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Num3) && i.modifiers.ctrl) {
+            self.resume = !self.resume;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Num4) && i.modifiers.ctrl) {
+            self.tts_enabled = !self.tts_enabled;
+        }
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical(|ui| {
@@ -242,13 +255,13 @@ impl eframe::App for GiaApp {
                     ui.group(|ui| {
                         ui.vertical(|ui| {
                             ui.label("Options");
-                            ui.checkbox(&mut self.use_clipboard, "Use clipboard input (-c)");
+                            ui.checkbox(&mut self.use_clipboard, "Use clipboard input (-c) [Ctrl+1]");
                             ui.checkbox(
                                 &mut self.browser_output,
-                                "Browser output (--browser-output)",
+                                "Browser output (--browser-output) [Ctrl+2]",
                             );
-                            ui.checkbox(&mut self.resume, "Resume last conversation (-R)");
-                            ui.checkbox(&mut self.tts_enabled, "Text-to-Speech (--tts)");
+                            ui.checkbox(&mut self.resume, "Resume last conversation (-R) [Ctrl+3]");
+                            ui.checkbox(&mut self.tts_enabled, "Text-to-Speech (--tts) [Ctrl+4]");
                         });
                     });
 
